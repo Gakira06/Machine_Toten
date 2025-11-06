@@ -153,6 +153,96 @@ app.delete("/cardapio/:id", async (req, res) => {
   res.status(204).send();
 });
 
+
+// =================================================================
+// --- ROTAS DE USUÁRIOS (Autoatendimento) ---
+// =================================================================
+
+/**
+ * Rota para VERIFICAR se um CPF já existe.
+ * A tela inicial do seu site vai chamar esta rota.
+ */
+app.post("/usuarios/check", async (req, res) => {
+  try {
+    const { cpf } = req.body;
+
+    if (!cpf) {
+      return res.status(400).json({ message: "CPF é obrigatório." });
+    }
+
+    const data = await readData();
+    // Procura no array 'usuarios' pelo CPF fornecido
+    const usuario = data.usuarios.find((u) => u.cpf === cpf);
+
+    if (usuario) {
+      // Usuário ENCONTRADO
+      res.json({ exists: true, usuario: usuario });
+    } else {
+      // Usuário NÃO ENCONTRADO
+      res.json({ exists: false });
+    }
+  } catch (error) {
+    console.error("Erro ao checar CPF:", error);
+    res.status(500).json({ message: "Erro interno no servidor." });
+  }
+});
+
+/**
+ * Rota para CADASTRAR um novo usuário.
+ * A sua "página de cadastro rápido" vai chamar esta rota.
+ */
+app.post("/usuarios/register", async (req, res) => {
+  try {
+    // Você pode adicionar mais campos aqui (ex: telefone)
+    const { cpf, nome, celular, email } = req.body;
+
+    if (!cpf || !nome || !celular) { // Email não é mais obrigatório
+      return res
+        .status(400)
+        .json({ message: "CPF, Nome e Celular são obrigatórios." });
+    }
+
+    const data = await readData();
+
+    // Verifica novamente se o CPF já não foi cadastrado (boa prática)
+    const existingUser = data.usuarios.find((u) => u.cpf === cpf);
+    if (existingUser) {
+      // 409 Conflict: Indica que o recurso já existe
+      return res.status(409).json({ message: "CPF já cadastrado." });
+    }
+
+    const novoUsuario = {
+      id: uuid(),
+      cpf: cpf,
+      nome: nome,
+      email: email || null, // Se email não for fornecido, será null
+      // Adicione outros campos se desejar
+    };
+
+    data.usuarios.push(novoUsuario);
+    await writeData(data);
+
+    // 201 Created: Retorna o usuário recém-criado
+    res
+      .status(201)
+      .json({
+        message: "Usuário cadastrado com sucesso!",
+        usuario: novoUsuario,
+      });
+  } catch (error) {
+    console.error("Erro ao registrar usuário:", error);
+    res
+      .status(500)
+      .json({ message: "Erro interno no servidor ao cadastrar usuário." });
+  }
+});
+
+// (Opcional) Rota para listar todos os usuários cadastrados
+app.get("/usuarios", async (req, res) => {
+  const data = await readData();
+  res.json(data.usuarios);
+});
+
 app.listen(port, () => {
   console.log(`Servidor rodando com sucesso na porta ${port}`);
 });

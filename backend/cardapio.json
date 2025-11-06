@@ -1,53 +1,91 @@
 {
-    "produtos": [
+  "produtos": [
     {
-        "id": "1",
-        "nome": "Pastel de Carne",
-        "descricao": "O pastel mais vendido da loja",
-        "imagem": "uploads\\PastelDeCarne.jpg"
+      "id": "1",
+      "nome": "Pastel de Carne",
+      "descricao": "O pastel mais vendido da loja",
+      "imagem": "uploads\\PastelDeCarne.jpg",
+      "categoria": "salgado"
     },
     {
-        "id": "2",
-        "nome": "Pastel de Queijo",
-        "descricao": "Delicioso pastel de queijo mussarela.",
-        "imagem": "uploads\\PastelDeQueijo.jpg"
+      "id": "2",
+      "nome": "Pastel de Queijo",
+      "descricao": "Delicioso pastel de queijo mussarela.",
+      "imagem": "uploads\\PastelDeQueijo.jpg",
+      "categoria": "salgado"
     },
     {
-        "id": "3",
-        "nome": "Pastel de Pizza",
-        "descricao": "Sabor pizza com queijo, tomate e orégano.",
-        "imagem": "uploads\\PastelDePizza.jpg"
+      "id": "3",
+      "nome": "Pastel de Pizza",
+      "descricao": "Sabor pizza com queijo, tomate e orégano.",
+      "imagem": "uploads\\PastelDePizza.jpg",
+      "categoria": "salgado"
     },
     {
-        "id": "4",
-        "nome": "Pastel de Frango com Catupiry",
-        "descricao": "Cremoso recheio de frango com Catupiry.",
-        "imagem": "uploads\\PastelDeFrangoComCatupiry.jpg"
+      "id": "4",
+      "nome": "Pastel de Frango com Catupiry",
+      "descricao": "Cremoso recheio de frango com Catupiry.",
+      "imagem": "uploads\\PastelDeFrangoComCatupiry.jpg",
+      "categoria": "salgado"
     },
     {
-        "id": "5",
-        "nome": "Pastel de Palmito",
-        "descricao": "Recheio suave de palmito selecionado.",
-        "imagem": "uploads\\PastelDePalmito.webp"
+      "id": "5",
+      "nome": "Pastel de Palmito",
+      "descricao": "Recheio suave de palmito selecionado.",
+      "imagem": "uploads\\PastelDePalmito.webp",
+      "categoria": "salgado"
     },
     {
-        "id": "6",
-        "nome": "Pastel de Calabresa",
-        "descricao": "Sabor intenso da calabresa com queijo.",
-        "imagem": "uploads\\PastelDeCalabresaComQueijo.webp"
+      "id": "6",
+      "nome": "Pastel de Calabresa",
+      "descricao": "Sabor intenso da calabresa com queijo.",
+      "imagem": "uploads\\PastelDeCalabresaComQueijo.webp",
+      "categoria": "salgado"
     },
     {
-        "id": "7",
-        "nome": "Pastel de Carne Seca",
-        "descricao": "Tradicional carne seca com catupiry.",
-        "imagem": "uploads\\PastelDeCarneSecaComCatupiry.webp"
+      "id": "7",
+      "nome": "Pastel de Carne Seca",
+      "descricao": "Tradicional carne seca com catupiry.",
+      "imagem": "uploads\\PastelDeCarneSecaComCatupiry.webp",
+      "categoria": "salgado"
     },
     {
-        "id": "8",
-        "nome": "Pastel Romeu e Julieta",
-        "descricao": "Doce combinação de goiabada e queijo.",
-        "imagem": "uploads\\PastelDeRomeuJulieta.webp"
+      "id": "8",
+      "nome": "Pastel Romeu e Julieta",
+      "descricao": "Doce combinação de goiabada e queijo.",
+      "imagem": "uploads\\PastelDeRomeuJulieta.webp",
+      "categoria": "doce"
     }
-],
-    "usuarios": []
+  ],
+  "usuarios": [
+    {
+      "id": "b5cf5510-c2db-4b4a-a129-9de42c19327b",
+      "cpf": "45383328874",
+      "nome": "Gabriel"
+    },
+    {
+      "id": "f643274d-d231-420b-94d4-315cd01b2f0d",
+      "cpf": "54893394894",
+      "nome": "Daiane",
+      "email": "dai@gmail.com"
+    },
+    {
+      "id": "43006e5d-5dfd-4880-b3b9-13e3264b95e3",
+      "cpf": "123121313",
+      "nome": "teste",
+      "email": "teste@gail.com"
+    },
+    {
+      "id": "c640174f-86fd-431b-acfc-6cb43368000f",
+      "cpf": "40966542839",
+      "nome": "tuco",
+      "email": "sha.pedro06@gmail.com"
+    },
+    {
+      "id": "428eab6e-6e2f-423b-9508-dd06803df53e",
+      "cpf": "3509180800",
+      "nome": "joana",
+      "email": "teste@gail.com"
+    }
+  ]
 }
