@@ -1,4 +1,4 @@
-import React, {useState, useEffect } from "react";
+import React, { useState, useEffect } from "react";
 import axios from "axios";
 import Hero from "../components/Hero";
 import Header from "../components/layout/Header";
@@ -22,7 +22,6 @@ const CardapioPage = () => {
     consultarProdutos();
   }, []);
 
-
   return (
     <div>
       <Header />
@@ -30,20 +29,34 @@ const CardapioPage = () => {
       <main className="flex flex-col items-center mt-8">
         <h2 className="text-2xl">Cardapio Completo</h2>
       </main>
-      <ul className="flex flex-wrap justify-center items-center gap-20 p-4" id="games">
+      <ul
+        className="flex flex-wrap justify-center items-center gap-20 p-4 m-20 mt-10"
+        id="games"
+      >
         {produto.map((item) => {
           const imagePath = item.imagem.replace(/\\/g, "/");
           const imageUrl = `${API_URL_image}/${imagePath}`;
           return (
-            <li key={item.id} className="shadow-3 flex flex-col justify-center itens-center ">
+            <li
+              key={item.id}
+              className="shadow-3 flex flex-col justify-center items-center"
+            >
               <div className="flex items-center justify-center w-64 h-64">
-                <img src={imageUrl} alt={item.nome} className="rounded-2xl w-full h-full object-cover hover:transition-opacity hover:opacity-55 duration-200" />
+                <img
+                  src={imageUrl}
+                  alt={item.nome}
+                  className="flex rounded-2xl w-full h-full object-cover hover:transition-opacity hover:opacity-55 duration-200"
+                />
               </div>
-              <div className="flex flex-col items-center">
-                <strong>{item.nome} </strong>
+              <div>
+                <p className="flex flex-col justify-center items-center text-xl w-70 text-center">
+                <strong className="text-2xl">{item.nome} </strong>
                 {item.descricao}
+                </p>
               </div>
-              
+              <div className="flex items-center justify-center">
+                <button className="bg-green-500 p-3 mt-2 rounded-2xl hover:bg-green-700">Comprar</button>
+              </div>
             </li>
           );
         })}
