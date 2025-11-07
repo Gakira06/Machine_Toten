@@ -317,6 +317,41 @@ app.get("/pedidos", async (req, res) => {
   }
 });
 
+app.delete("/pedidos/:id", async (req, res) => {
+  try {
+    const pedidoId = req.params.id;
+    const data = await readData();
+
+    // 1. Verifica se 'pedidos' existe
+    if (!data.pedidos) {
+      data.pedidos = [];
+      return res.status(404).json({ error: "Nenhum pedido encontrado." });
+    }
+
+    // 2. Encontra o índice do pedido a ser removido
+    const pedidoIndex = data.pedidos.findIndex((p) => p.id === pedidoId);
+
+    if (pedidoIndex === -1) {
+      return res.status(404).json({ error: "Pedido não encontrado." });
+    }
+
+    // 3. Remove o pedido do array
+    data.pedidos.splice(pedidoIndex, 1);
+
+    // 4. Salva o arquivo JSON atualizado
+    await writeData(data);
+
+    // 5. Responde com sucesso (Sem conteúdo)
+    res.status(204).send();
+    
+  } catch (error) {
+    console.error("Erro ao deletar o pedido:", error);
+    res
+      .status(500)
+      .json({ message: "Erro interno no servidor ao deletar o pedido." });
+  }
+});
+
 app.listen(port, () => {
   console.log(`Servidor rodando com sucesso na porta ${port}`);
 });

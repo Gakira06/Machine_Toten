@@ -98,7 +98,7 @@
   ],
   "pedidos": [
     {
-      "id": "60245a0a-7a33-4ecf-9999-74a12f1183e8",
+      "id": "1f967f87-e517-4363-a435-7fbe88ec8cd7",
       "items": [
         {
           "id": "1",
@@ -107,11 +107,28 @@
           "imagem": "uploads\\PastelDeCarne.jpg",
           "categoria": "salgado",
           "preco": "17",
-          "quantity": 1
+          "quantity": 2
         }
       ],
-      "total": 17,
-      "data": "2025-11-07T13:59:11.123Z",
+      "total": 34,
+      "data": "2025-11-07T14:39:24.130Z",
+      "status": "pendente"
+    },
+    {
+      "id": "d7912c08-a58b-42b6-935d-57e52f926308",
+      "items": [
+        {
+          "id": "2",
+          "nome": "Pastel de Queijo",
+          "descricao": "Delicioso pastel de queijo mussarela.",
+          "imagem": "uploads\\PastelDeQueijo.jpg",
+          "categoria": "salgado",
+          "preco": "17",
+          "quantity": 2
+        }
+      ],
+      "total": 34,
+      "data": "2025-11-07T14:39:31.099Z",
       "status": "pendente"
     }
   ]
