@@ -1,3 +1,5 @@
+import IconCart from "../assets/icons/shopping-cart.svg"
+
 const Categorias = ({ categorias, filtroItems }) => {
   return (
     <div className="flex flex-col items-center transition z-50  sticky top-0">
@@ -11,6 +13,7 @@ const Categorias = ({ categorias, filtroItems }) => {
             {categoria}
           </button>
         ))}
+        <img src={IconCart} />
       </nav>
     </div>
   );

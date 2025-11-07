@@ -63,7 +63,7 @@ const writeData = async (data) => {
 
 app.post("/cardapio", upload.single("imagem"), async (req, res) => {
   try {
-    const { nome, descricao } = req.body; // Pega o nome do cardapio que veio no corpo da requisição
+    const { nome, descricao, preco, categoria } = req.body; // Pega o nome do cardapio que veio no corpo da requisição
 
     if (!req.file) {
       return res
@@ -71,7 +71,7 @@ app.post("/cardapio", upload.single("imagem"), async (req, res) => {
         .json({ message: "Nenhum arquivo de imagem enviado." });
     }
 
-    if (!nome || !descricao) {
+    if (!nome || !descricao || !preco || !categoria) {
       return res
         .status(400)
         .json({ message: "Nome e descrição são obrigatórios." });
@@ -82,6 +82,8 @@ app.post("/cardapio", upload.single("imagem"), async (req, res) => {
       id: uuid(),
       nome: nome,
       descricao: descricao,
+      preco: Number(preco), // Salva como número
+      categoria: categoria,
       imagem: imagemPath,
     };
 
@@ -241,6 +243,78 @@ app.post("/usuarios/register", async (req, res) => {
 app.get("/usuarios", async (req, res) => {
   const data = await readData();
   res.json(data.usuarios);
+});
+
+
+// =================================================================
+// --- ROTAS DE PEDIDOS (Totem) ---
+// =================================================================
+
+/**
+ * Rota para RECEBER um novo pedido do totem.
+ * O componente <Cart> do React vai chamar esta rota.
+ */
+app.post("/pedidos", async (req, res) => {
+  try {
+    // 1. Pega os dados do pedido que o <Cart> enviou no corpo (body) da requisição
+    const { items, total, data: dataPedido, status } = req.body;
+
+    // 2. Validação simples
+    if (!items || !total || !dataPedido || !status) {
+      return res
+        .status(400)
+        .json({ message: "Dados do pedido estão incompletos." });
+    }
+
+    // 3. Lê o arquivo cardapio.json (que agora também guarda pedidos)
+    const data = await readData();
+
+    // 4. Cria o novo objeto de pedido
+    const novoPedido = {
+      id: uuid(), // Cria um ID único para este pedido
+      items: items,
+      total: total,
+      data: dataPedido,
+      status: status, // Ex: 'pendente'
+    };
+
+    // 5. Adiciona o novo pedido ao array de pedidos
+    //    É uma boa prática verificar se o array 'pedidos' já existe
+    if (!data.pedidos) {
+      data.pedidos = [];
+    }
+    data.pedidos.push(novoPedido);
+
+    // 6. Salva os dados atualizados (com o novo pedido) de volta no arquivo JSON
+    await writeData(data);
+
+    // 7. Responde ao frontend com sucesso
+    res
+      .status(201) // 201 Created (sucesso na criação)
+      .json({
+        message: "Pedido recebido com sucesso!",
+        pedido: novoPedido,
+      });
+  } catch (error) {
+    console.error("Erro ao salvar o pedido:", error);
+    res
+      .status(500)
+      .json({ message: "Erro interno no servidor ao salvar o pedido." });
+  }
+});
+
+// (Opcional) Rota para o dono/funcionário ver os pedidos pendentes
+app.get("/pedidos", async (req, res) => {
+  try {
+    const data = await readData();
+    const pedidos = data.pedidos || []; // Retorna array vazio se não houver pedidos
+    res.json(pedidos);
+  } catch (error) {
+    console.error("Erro ao ler pedidos:", error);
+    res
+      .status(500)
+      .json({ message: "Erro interno no servidor ao ler pedidos." });
+  }
 });
 
 app.listen(port, () => {

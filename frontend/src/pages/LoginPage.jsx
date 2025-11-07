@@ -6,7 +6,7 @@ const LoginPage = () => {
     <div>
       <Header />
       <main className="flex justify-center items-center">
-        <div className=" flex flex-col border border-s-black p-10">
+        <div className=" flex flex-col border border-s-black p-10 rounded-2xl shadow-2xl ">
           <h2 className="text-2xl">Gostaria de fazer Login?</h2>
           <div className="flex justify-center gap-30 mt-10">
             <NavLink to="/usuario">

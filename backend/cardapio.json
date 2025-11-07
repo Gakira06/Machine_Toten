@@ -5,56 +5,64 @@
       "nome": "Pastel de Carne",
       "descricao": "O pastel mais vendido da loja",
       "imagem": "uploads\\PastelDeCarne.jpg",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "2",
       "nome": "Pastel de Queijo",
       "descricao": "Delicioso pastel de queijo mussarela.",
       "imagem": "uploads\\PastelDeQueijo.jpg",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "3",
       "nome": "Pastel de Pizza",
       "descricao": "Sabor pizza com queijo, tomate e orégano.",
       "imagem": "uploads\\PastelDePizza.jpg",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "4",
       "nome": "Pastel de Frango com Catupiry",
       "descricao": "Cremoso recheio de frango com Catupiry.",
       "imagem": "uploads\\PastelDeFrangoComCatupiry.jpg",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "5",
       "nome": "Pastel de Palmito",
       "descricao": "Recheio suave de palmito selecionado.",
       "imagem": "uploads\\PastelDePalmito.webp",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "6",
       "nome": "Pastel de Calabresa",
       "descricao": "Sabor intenso da calabresa com queijo.",
       "imagem": "uploads\\PastelDeCalabresaComQueijo.webp",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "7",
       "nome": "Pastel de Carne Seca",
       "descricao": "Tradicional carne seca com catupiry.",
       "imagem": "uploads\\PastelDeCarneSecaComCatupiry.webp",
-      "categoria": "salgado"
+      "categoria": "salgado",
+      "preco": "17"
     },
     {
       "id": "8",
       "nome": "Pastel Romeu e Julieta",
       "descricao": "Doce combinação de goiabada e queijo.",
       "imagem": "uploads\\PastelDeRomeuJulieta.webp",
-      "categoria": "doce"
+      "categoria": "doce",
+      "preco": "17"
     }
   ],
   "usuarios": [
@@ -86,6 +94,25 @@
       "cpf": "3509180800",
       "nome": "joana",
       "email": "teste@gail.com"
+    }
+  ],
+  "pedidos": [
+    {
+      "id": "60245a0a-7a33-4ecf-9999-74a12f1183e8",
+      "items": [
+        {
+          "id": "1",
+          "nome": "Pastel de Carne",
+          "descricao": "O pastel mais vendido da loja",
+          "imagem": "uploads\\PastelDeCarne.jpg",
+          "categoria": "salgado",
+          "preco": "17",
+          "quantity": 1
+        }
+      ],
+      "total": 17,
+      "data": "2025-11-07T13:59:11.123Z",
+      "status": "pendente"
     }
   ]
 }
