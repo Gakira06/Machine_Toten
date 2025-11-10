@@ -59,6 +59,51 @@
         "total": 34,
         "data": "2025-11-10T13:55:16.956Z",
         "status": "pendente"
+      },
+      {
+        "id": "774a8a68-2747-4ae0-bea5-146ee75fb00b",
+        "usuarioId": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+        "items": [
+          {
+            "id": "1",
+            "nome": "Pastel de Carne",
+            "descricao": "O pastel mais vendido da loja",
+            "imagem": "uploads\\PastelDeCarne.jpg",
+            "categoria": "salgado",
+            "preco": "17",
+            "quantity": 2
+          }
+        ],
+        "total": 34,
+        "data": "2025-11-10T14:17:34.623Z",
+        "status": "pendente"
+      },
+      {
+        "id": "3695f1c8-2e90-46ed-891c-3e247b2c96e1",
+        "usuarioId": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+        "items": [
+          {
+            "id": "4",
+            "nome": "Pastel de Frango com Catupiry",
+            "descricao": "Cremoso recheio de frango com Catupiry.",
+            "imagem": "uploads\\PastelDeFrangoComCatupiry.jpg",
+            "categoria": "salgado",
+            "preco": "17",
+            "quantity": 1
+          },
+          {
+            "id": "8",
+            "nome": "Pastel Romeu e Julieta",
+            "descricao": "Doce combinação de goiabada e queijo.",
+            "imagem": "uploads\\PastelDeRomeuJulieta.webp",
+            "categoria": "doce",
+            "preco": "17",
+            "quantity": 1
+          }
+        ],
+        "total": 34,
+        "data": "2025-11-10T17:45:21.188Z",
+        "status": "pendente"
       }
     ]
   }

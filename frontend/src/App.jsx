@@ -1,4 +1,3 @@
-import LoginPage from "./pages/LoginPage";
 import UsuarioPage from "./pages/UsuarioPage";
 import CadastroRapidoPage from "./pages/CadastroPage";
 import CardapioPage from "./pages/CardapioPage";
@@ -10,8 +9,7 @@ function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<LoginPage />} />
-        <Route path="/usuario" element={<UsuarioPage />} />
+        <Route path="/" element={<UsuarioPage />} />
         <Route path="/cadastro-rapido" element={<CadastroRapidoPage />} />
         <Route
           path="/cardapio"

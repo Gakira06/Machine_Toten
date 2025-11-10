@@ -1,12 +1,13 @@
 import React from "react";
 import { useCart } from "../context/CartContext";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 const Cart = () => {
   const { cartItems, updateQuantity, getTotalPrice, clearCart } = useCart();
   // A URL da API continua a mesma
   const API_URL_PEDIDOS = "http://localhost:5001/pedidos";
-
+  const navigate = useNavigate(); // <-- 2. INICIALIZE O HOOK
   //
   // --- FUNÇÃO ATUALIZADA ---
   //
@@ -44,6 +45,12 @@ const Cart = () => {
       // 5. Limpa o carrinho e avisa o usuário
       alert("Pedido realizado com sucesso!");
       clearCart();
+
+      // --- 3. LÓGICA DE LOGOUT E REDIRECIONAMENTO ---
+      localStorage.removeItem("usuario"); // Apaga o usuário do localStorage
+      navigate("/"); // Redireciona para a página inicial (UsuarioPage)
+      // ---------------------------------------------
+
     } catch (error) {
       console.error("Erro ao finalizar o pedido:", error);
       alert("Houve um erro ao processar seu pedido. Tente novamente.");

@@ -14,7 +14,7 @@ const CadastroRapidoPage = () => {
 
     if (!cpf) {
       alert("Erro: CPF não encontrado. Volte para a tela inicial.");
-      window.location.href = "/usuario"; // Manda de volta para a tela de CPF
+      window.location.href = "/"; // Manda de volta para a tela de CPF
       return;
     }
 
