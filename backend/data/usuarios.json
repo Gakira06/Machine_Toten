@@ -1,0 +1,65 @@
+[
+  {
+    "id": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+    "cpf": "45383328874",
+    "nome": "Gabriel",
+    "celular": "11989009259",
+    "email": "gakirakiyohara@gmail.com",
+    "historico": [
+      {
+        "id": "0cf7a37c-4d58-4df9-9736-f402539e0af5",
+        "usuarioId": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+        "items": [
+          {
+            "id": "1",
+            "nome": "Pastel de Carne",
+            "descricao": "O pastel mais vendido da loja",
+            "imagem": "uploads\\PastelDeCarne.jpg",
+            "categoria": "salgado",
+            "preco": "17",
+            "quantity": 1
+          }
+        ],
+        "total": 17,
+        "data": "2025-11-07T20:51:16.224Z",
+        "status": "pendente"
+      },
+      {
+        "id": "75bddf7a-f0b1-400f-97a2-fbb87dd780f9",
+        "usuarioId": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+        "items": [
+          {
+            "id": "2",
+            "nome": "Pastel de Queijo",
+            "descricao": "Delicioso pastel de queijo mussarela.",
+            "imagem": "uploads\\PastelDeQueijo.jpg",
+            "categoria": "salgado",
+            "preco": "17",
+            "quantity": 1
+          }
+        ],
+        "total": 17,
+        "data": "2025-11-10T13:54:45.563Z",
+        "status": "pendente"
+      },
+      {
+        "id": "b0d545e3-be07-44df-8cf0-0e6e1c62e42c",
+        "usuarioId": "104b629a-d934-4e66-b3ec-b4e8d489001e",
+        "items": [
+          {
+            "id": "4",
+            "nome": "Pastel de Frango com Catupiry",
+            "descricao": "Cremoso recheio de frango com Catupiry.",
+            "imagem": "uploads\\PastelDeFrangoComCatupiry.jpg",
+            "categoria": "salgado",
+            "preco": "17",
+            "quantity": 2
+          }
+        ],
+        "total": 34,
+        "data": "2025-11-10T13:55:16.956Z",
+        "status": "pendente"
+      }
+    ]
+  }
+]

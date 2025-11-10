@@ -1,357 +1,362 @@
+// --- 1. Imports ---
+require("dotenv").config(); // Carrega o .env (DEVE SER A PRIMEIRA LINHA)
 const express = require("express");
-
 const cors = require("cors");
 const multer = require("multer");
-const fs = require("fs").promises; // Usando a versão baseada em Promises do 'fs'
+const fs = require("fs").promises;
+const { existsSync, mkdirSync } = require("fs");
 const path = require("path");
-
-const { existsSync } = require("fs"); // Importando sync apenas para a verificação inicial
 const bodyParser = require("body-parser");
-
 const { v4: uuid } = require("uuid");
 
-const app = express();
+// --- 2. Configuração da IA (Google Gemini) ---
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-pro" });
 
+// --- 3. Configuração do App Express ---
+const app = express();
 const port = 5001;
 
 app.use(cors());
-
 app.use(bodyParser.json());
+app.use("/uploads", express.static("uploads"));
 
-app.use("/uploads", express.static("uploads")); // Torna a pasta 'uploads' pública
+// --- 4. Configuração de Pastas e Arquivos ---
+// Garante que as pastas 'data' (para JSONs) e 'uploads' (para imagens) existam
+if (!existsSync("./data")) mkdirSync("./data");
+if (!existsSync("./uploads")) mkdirSync("./uploads");
 
-// --- Configuração do Multer ---
+const DB_CARDAPIO = path.join(__dirname, "data", "cardapio.json");
+const DB_USUARIOS = path.join(__dirname, "data", "usuarios.json");
+const DB_PEDIDOS = path.join(__dirname, "data", "pedidos.json"); // Fila de pedidos ATIVOS
+
+// --- 5. Configuração do Multer (Upload) ---
 const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    // Define a pasta onde as imagens serão salvas
-    cb(null, "uploads/");
-  },
-  filename: function (req, file, cb) {
-    // Cria um nome único para o arquivo para evitar nomes duplicados
-    cb(null, Date.now() + path.extname(file.originalname));
-  },
+  destination: (req, file, cb) => cb(null, "uploads/"),
+  filename: (req, file, cb) =>
+    cb(null, Date.now() + path.extname(file.originalname)),
 });
-
 const upload = multer({ storage: storage });
 
-// --- Lógica para salvar no JSON ---
-const dbPath = path.join(__dirname, "cardapio.json");
+// --- 6. Funções Auxiliares (Leitura/Escrita de JSON) ---
 
-// Função para ler os dados do nosso "banco de dados" JSON
-const readData = async () => {
+/**
+ * Lê um arquivo JSON. Se não existir, cria com um array vazio [].
+ * @param {string} filePath - O caminho para o arquivo .json
+ * @returns {Promise<Array<any>>} - O conteúdo do arquivo como um array
+ */
+const readJSON = async (filePath) => {
   try {
-    if (!existsSync(dbPath)) {
-      // Se o arquivo não existe, cria com um array de produtos vazio
-      await fs.writeFile(
-        dbPath,
-        JSON.stringify({ produtos: [], usuarios: [] })
-      );
+    if (!existsSync(filePath)) {
+      await fs.writeFile(filePath, JSON.stringify([], null, 2));
+      return [];
     }
-    const data = await fs.readFile(dbPath);
+    const data = await fs.readFile(filePath, "utf-8");
     return JSON.parse(data);
   } catch (error) {
-    console.error("Erro ao ler ou parsear o arquivo do banco de dados:", error);
-    // Retorna uma estrutura padrão em caso de erro para não quebrar a aplicação
-    return { produtos: [], usuarios: [] };
+    console.error(`Erro ao ler ${filePath}:`, error);
+    return [];
   }
 };
 
-// Função para escrever os novos dados no JSON
-const writeData = async (data) => {
-  await fs.writeFile(dbPath, JSON.stringify(data, null, 2)); // o 'null, 2' formata o JSON para ficar legível
+/**
+ * Escreve dados em um arquivo JSON.
+ * @param {string} filePath - O caminho para o arquivo .json
+ * @param {Array<any>} data - O array de dados a ser salvo
+ */
+const writeJSON = async (filePath, data) => {
+  try {
+    await fs.writeFile(filePath, JSON.stringify(data, null, 2));
+  } catch (error) {
+    console.error(`Erro ao escrever em ${filePath}:`, error);
+  }
 };
+
+// =================================================================
+// --- 7. ROTAS DE CARDÁPIO (cardapio.json) ---
+// =================================================================
+
+app.get("/cardapio", async (req, res) => {
+  const produtos = await readJSON(DB_CARDAPIO);
+  res.json(produtos);
+});
 
 app.post("/cardapio", upload.single("imagem"), async (req, res) => {
   try {
-    const { nome, descricao, preco, categoria } = req.body; // Pega o nome do cardapio que veio no corpo da requisição
-
-    if (!req.file) {
+    const { nome, descricao, preco, categoria } = req.body;
+    if (!req.file || !nome || !descricao || !preco || !categoria) {
       return res
         .status(400)
-        .json({ message: "Nenhum arquivo de imagem enviado." });
+        .json({
+          message:
+            "Todos os campos (nome, descricao, preco, categoria, imagem) são obrigatórios.",
+        });
     }
 
-    if (!nome || !descricao || !preco || !categoria) {
-      return res
-        .status(400)
-        .json({ message: "Nome e descrição são obrigatórios." });
-    }
-    const imagemPath = req.file.path; // Pega o caminho onde a imagem foi salva pelo multer
-    const data = await readData();
+    const produtos = await readJSON(DB_CARDAPIO);
     const novoProduto = {
       id: uuid(),
-      nome: nome,
-      descricao: descricao,
-      preco: Number(preco), // Salva como número
-      categoria: categoria,
-      imagem: imagemPath,
+      nome,
+      descricao,
+      preco: Number(preco),
+      categoria,
+      imagem: req.file.path,
     };
 
-    data.produtos.push(novoProduto);
-    await writeData(data);
+    produtos.push(novoProduto);
+    await writeJSON(DB_CARDAPIO, produtos);
 
     res
       .status(201)
-      .json({
-        message: "Produto cadastrado com sucesso!",
-        produto: novoProduto,
-      });
+      .json({ message: "Produto cadastrado!", produto: novoProduto });
   } catch (error) {
-    console.error(error);
-    res
-      .status(500)
-      .json({ message: "Erro interno no servidor ao salvar o produto." });
+    res.status(500).json({ message: "Erro interno ao salvar produto." });
   }
 });
 
-app.get("/cardapio", async (req, res) => {
-  const data = await readData();
-  res.json(data.produtos);
-});
-
 app.put("/cardapio/:id", async (req, res) => {
+  // Nota: Esta rota (do seu código original) só atualiza nome e descrição.
   const produtoId = req.params.id;
   const { nome, descricao } = req.body;
-  const data = await readData();
+  const produtos = await readJSON(DB_CARDAPIO);
 
   if (!nome || !descricao) {
     return res.status(400).json({ error: "Campos Inválidos" });
   }
 
-  // 1. LER os dados do arquivo
-
-  const produtoIndex = data.produtos.findIndex((item) => item.id === produtoId);
+  const produtoIndex = produtos.findIndex((item) => item.id === produtoId);
   if (produtoIndex === -1) {
-    return res.status(400).json({ error: "Produto nâo encontrado" });
+    return res.status(400).json({ error: "Produto não encontrado" });
   }
 
-  const cardapioAtualizado = {
+  // Atualiza mantendo os dados antigos
+  const produtoAtualizado = {
+    ...produtos[produtoIndex],
     id: produtoId,
     nome,
     descricao,
-    imagem: data.produtos[produtoIndex].imagem,
   };
-  data.produtos[produtoIndex] = cardapioAtualizado;
+  produtos[produtoIndex] = produtoAtualizado;
 
-  await writeData(data);
-
-  res.json(cardapioAtualizado);
+  await writeJSON(DB_CARDAPIO, produtos);
+  res.json(produtoAtualizado);
 });
 
 app.delete("/cardapio/:id", async (req, res) => {
-  const produtoId = req.params.id;
-  const data = await readData();
+  const produtos = await readJSON(DB_CARDAPIO);
+  const novosProdutos = produtos.filter((item) => item.id !== req.params.id);
 
-  const produtoIndex = data.produtos.findIndex((item) => item.id === produtoId);
-
-  if (produtoIndex === -1) {
-    return res.status(404).json({ error: "produto não encontrado" });
+  if (produtos.length === novosProdutos.length) {
+    return res.status(404).json({ error: "Produto não encontrado" });
   }
-  data.produtos.splice(produtoIndex, 1);
 
-  await writeData(data);
-
-  // É uma boa prática retornar 204 (No Content) em um DELETE bem-sucedido.
+  await writeJSON(DB_CARDAPIO, novosProdutos);
   res.status(204).send();
 });
 
-
 // =================================================================
-// --- ROTAS DE USUÁRIOS (Autoatendimento) ---
+// --- 8. ROTAS DE USUÁRIOS (usuarios.json) ---
 // =================================================================
 
-/**
- * Rota para VERIFICAR se um CPF já existe.
- * A tela inicial do seu site vai chamar esta rota.
- */
 app.post("/usuarios/check", async (req, res) => {
-  try {
-    const { cpf } = req.body;
+  const { cpf } = req.body;
+  if (!cpf) return res.status(400).json({ message: "CPF é obrigatório." });
 
-    if (!cpf) {
-      return res.status(400).json({ message: "CPF é obrigatório." });
-    }
-
-    const data = await readData();
-    // Procura no array 'usuarios' pelo CPF fornecido
-    const usuario = data.usuarios.find((u) => u.cpf === cpf);
-
-    if (usuario) {
-      // Usuário ENCONTRADO
-      res.json({ exists: true, usuario: usuario });
-    } else {
-      // Usuário NÃO ENCONTRADO
-      res.json({ exists: false });
-    }
-  } catch (error) {
-    console.error("Erro ao checar CPF:", error);
-    res.status(500).json({ message: "Erro interno no servidor." });
-  }
+  const usuarios = await readJSON(DB_USUARIOS);
+  const usuario = usuarios.find((u) => u.cpf === cpf);
+  res.json({ exists: !!usuario, usuario: usuario || null });
 });
 
-/**
- * Rota para CADASTRAR um novo usuário.
- * A sua "página de cadastro rápido" vai chamar esta rota.
- */
 app.post("/usuarios/register", async (req, res) => {
-  try {
-    // Você pode adicionar mais campos aqui (ex: telefone)
-    const { cpf, nome, celular, email } = req.body;
-
-    if (!cpf || !nome || !celular) { // Email não é mais obrigatório
-      return res
-        .status(400)
-        .json({ message: "CPF, Nome e Celular são obrigatórios." });
-    }
-
-    const data = await readData();
-
-    // Verifica novamente se o CPF já não foi cadastrado (boa prática)
-    const existingUser = data.usuarios.find((u) => u.cpf === cpf);
-    if (existingUser) {
-      // 409 Conflict: Indica que o recurso já existe
-      return res.status(409).json({ message: "CPF já cadastrado." });
-    }
-
-    const novoUsuario = {
-      id: uuid(),
-      cpf: cpf,
-      nome: nome,
-      email: email || null, // Se email não for fornecido, será null
-      // Adicione outros campos se desejar
-    };
-
-    data.usuarios.push(novoUsuario);
-    await writeData(data);
-
-    // 201 Created: Retorna o usuário recém-criado
-    res
-      .status(201)
-      .json({
-        message: "Usuário cadastrado com sucesso!",
-        usuario: novoUsuario,
-      });
-  } catch (error) {
-    console.error("Erro ao registrar usuário:", error);
-    res
-      .status(500)
-      .json({ message: "Erro interno no servidor ao cadastrar usuário." });
-  }
-});
-
-// (Opcional) Rota para listar todos os usuários cadastrados
-app.get("/usuarios", async (req, res) => {
-  const data = await readData();
-  res.json(data.usuarios);
-});
-
-
-// =================================================================
-// --- ROTAS DE PEDIDOS (Totem) ---
-// =================================================================
-
-/**
- * Rota para RECEBER um novo pedido do totem.
- * O componente <Cart> do React vai chamar esta rota.
- */
-app.post("/pedidos", async (req, res) => {
   try {
-    // 1. Pega os dados do pedido que o <Cart> enviou no corpo (body) da requisição
-    const { items, total, data: dataPedido, status } = req.body;
-
-    // 2. Validação simples
-    if (!items || !total || !dataPedido || !status) {
+    const { cpf, nome, celular, email } = req.body;
+    if (!cpf || !nome || !celular) {
       return res
         .status(400)
-        .json({ message: "Dados do pedido estão incompletos." });
+        .json({ message: "CPF, Nome e Celular são obrigatórios." });
     }
 
-    // 3. Lê o arquivo cardapio.json (que agora também guarda pedidos)
-    const data = await readData();
+    const usuarios = await readJSON(DB_USUARIOS);
+    if (usuarios.find((u) => u.cpf === cpf)) {
+      return res.status(409).json({ message: "CPF já cadastrado." });
+    }
 
-    // 4. Cria o novo objeto de pedido
-    const novoPedido = {
-      id: uuid(), // Cria um ID único para este pedido
-      items: items,
-      total: total,
-      data: dataPedido,
-      status: status, // Ex: 'pendente'
+    const novoUsuario = {
+      id: uuid(),
+      cpf,
+      nome,
+      celular,
+      email: email || null,
+      historico: [], // ** IMPORTANTE: Campo criado para a IA **
     };
 
-    // 5. Adiciona o novo pedido ao array de pedidos
-    //    É uma boa prática verificar se o array 'pedidos' já existe
-    if (!data.pedidos) {
-      data.pedidos = [];
-    }
-    data.pedidos.push(novoPedido);
+    usuarios.push(novoUsuario);
+    await writeJSON(DB_USUARIOS, usuarios);
 
-    // 6. Salva os dados atualizados (com o novo pedido) de volta no arquivo JSON
-    await writeData(data);
-
-    // 7. Responde ao frontend com sucesso
     res
-      .status(201) // 201 Created (sucesso na criação)
-      .json({
-        message: "Pedido recebido com sucesso!",
-        pedido: novoPedido,
-      });
+      .status(201)
+      .json({ message: "Usuário cadastrado!", usuario: novoUsuario });
   } catch (error) {
-    console.error("Erro ao salvar o pedido:", error);
-    res
-      .status(500)
-      .json({ message: "Erro interno no servidor ao salvar o pedido." });
+    res.status(500).json({ message: "Erro ao cadastrar usuário." });
   }
 });
 
-// (Opcional) Rota para o dono/funcionário ver os pedidos pendentes
-app.get("/pedidos", async (req, res) => {
+// Rota para a IA pegar o histórico completo de um usuário
+app.get("/usuarios/:id/historico", async (req, res) => {
+  const usuarios = await readJSON(DB_USUARIOS);
+  const usuario = usuarios.find((u) => u.id === req.params.id);
+
+  if (!usuario) {
+    return res.status(404).json({ error: "Usuário não encontrado" });
+  }
+
+  res.json(usuario.historico || []); // Retorna o histórico ou um array vazio
+});
+
+// =================================================================
+// --- 9. ROTAS DE PEDIDOS (pedidos.json + usuarios.json) ---
+// =================================================================
+
+app.post("/pedidos", async (req, res) => {
   try {
-    const data = await readData();
-    const pedidos = data.pedidos || []; // Retorna array vazio se não houver pedidos
-    res.json(pedidos);
-  } catch (error) {
-    console.error("Erro ao ler pedidos:", error);
+    // ** IMPORTANTE: Agora espera o usuarioId vindo do frontend **
+    const { items, total, usuarioId } = req.body;
+
+    if (!items || !total || !usuarioId) {
+      return res
+        .status(400)
+        .json({
+          message: "Dados incompletos (falta items, total ou usuarioId).",
+        });
+    }
+
+    // 1. Busca o usuário para pegar o nome e atualizar o histórico
+    const usuarios = await readJSON(DB_USUARIOS);
+    const usuarioIndex = usuarios.findIndex((u) => u.id === usuarioId);
+
+    if (usuarioIndex === -1) {
+      return res
+        .status(404)
+        .json({ message: "Usuário não encontrado para vincular ao pedido." });
+    }
+
+    const pedidoData = {
+      id: uuid(),
+      usuarioId,
+      items,
+      total,
+      data: new Date().toISOString(),
+      status: "pendente",
+    };
+
+    // --- AÇÃO A: Salva na fila de atendimento (pedidos.json) ---
+    const pedidosAtivos = await readJSON(DB_PEDIDOS);
+    pedidosAtivos.push({
+      ...pedidoData,
+      nomeCliente: usuarios[usuarioIndex].nome, // Adiciona o nome do cliente
+    });
+    await writeJSON(DB_PEDIDOS, pedidosAtivos);
+
+    // --- AÇÃO B: Salva no histórico PERMANENTE do usuário (usuarios.json) ---
+    if (!usuarios[usuarioIndex].historico) {
+      usuarios[usuarioIndex].historico = [];
+    }
+    usuarios[usuarioIndex].historico.push(pedidoData);
+    await writeJSON(DB_USUARIOS, usuarios);
+
     res
-      .status(500)
-      .json({ message: "Erro interno no servidor ao ler pedidos." });
+      .status(201)
+      .json({ message: "Pedido recebido!", pedidoId: pedidoData.id });
+  } catch (error) {
+    console.error("Erro ao processar pedido:", error);
+    res.status(500).json({ message: "Erro interno ao salvar pedido." });
   }
 });
 
+// Lista apenas os pedidos ATIVOS (da fila) para a cozinha/atendente
+app.get("/pedidos", async (req, res) => {
+  const pedidos = await readJSON(DB_PEDIDOS);
+  // Ordena do mais antigo para o mais novo (fila)
+  pedidos.sort((a, b) => new Date(a.data) - new Date(b.data));
+  res.json(pedidos);
+});
+
+// Finaliza um pedido (remove APENAS de pedidos.json)
 app.delete("/pedidos/:id", async (req, res) => {
   try {
-    const pedidoId = req.params.id;
-    const data = await readData();
+    const pedidosAtivos = await readJSON(DB_PEDIDOS);
+    const novosPedidosAtivos = pedidosAtivos.filter(
+      (p) => p.id !== req.params.id
+    );
 
-    // 1. Verifica se 'pedidos' existe
-    if (!data.pedidos) {
-      data.pedidos = [];
-      return res.status(404).json({ error: "Nenhum pedido encontrado." });
+    if (pedidosAtivos.length === novosPedidosAtivos.length) {
+      return res.status(404).json({ error: "Pedido ativo não encontrado." });
     }
 
-    // 2. Encontra o índice do pedido a ser removido
-    const pedidoIndex = data.pedidos.findIndex((p) => p.id === pedidoId);
-
-    if (pedidoIndex === -1) {
-      return res.status(404).json({ error: "Pedido não encontrado." });
-    }
-
-    // 3. Remove o pedido do array
-    data.pedidos.splice(pedidoIndex, 1);
-
-    // 4. Salva o arquivo JSON atualizado
-    await writeData(data);
-
-    // 5. Responde com sucesso (Sem conteúdo)
+    // Mantém o histórico (em usuarios.json) mas apaga da fila ativa
+    await writeJSON(DB_PEDIDOS, novosPedidosAtivos);
     res.status(204).send();
-    
   } catch (error) {
-    console.error("Erro ao deletar o pedido:", error);
-    res
-      .status(500)
-      .json({ message: "Erro interno no servidor ao deletar o pedido." });
+    res.status(500).json({ message: "Erro ao finalizar pedido." });
   }
 });
 
+// =================================================================
+// --- 10. ROTA DE SUGESTÃO (IA) ---
+// =D ================================================================
+
+app.post("/gerar-sugestao", async (req, res) => {
+  try {
+    // 1. Recebe o contexto MÍNIMO do frontend
+    const { usuarioId, cartItems, temperatura } = req.body;
+
+    // 2. Busca o restante do contexto no SERVIDOR (mais seguro e eficiente)
+    const cardapio = await readJSON(DB_CARDAPIO);
+    const usuarios = await readJSON(DB_USUARIOS);
+    const usuario = usuarios.find((u) => u.id === usuarioId);
+
+    // Se o usuário não for encontrado (ex: compra anônima), usa um histórico vazio
+    const historico = usuario ? usuario.historico : [];
+
+    // 3. Monta o Prompt para a IA
+    const prompt = `
+      Você é um assistente de totem de autoatendimento de uma lanchonete.
+      Seu objetivo é dar UMA sugestão curta (máx 25 palavras), amigável e criativa 
+      para incentivar o usuário a comprar mais um item.
+      NÃO use emojis. NÃO seja robótico ("Notei que..."). Seja direto e vendedor.
+      Baseie-se no contexto, especialmente no histórico e no clima.
+
+      --- CONTEXTO ---
+      Clima: ${temperatura || 20}°C.
+      Itens no Carrinho Atual: ${JSON.stringify(cartItems.map((i) => i.nome))}
+      Histórico de Pedidos Passados: ${JSON.stringify(
+        historico.flatMap((p) => p.items.map((i) => i.nome))
+      )}
+      Cardápio Disponível: ${JSON.stringify(
+        cardapio.map((p) => ({ nome: p.nome, categoria: p.categoria }))
+      )}
+      ---
+
+      Gere a sugestão:
+    `;
+
+    // 4. Chama a API do Gemini
+    const result = await model.generateContent(prompt);
+    const response = await result.response;
+    const sugestaoDaIA = response.text().trim(); // .trim() remove espaços em branco
+
+    // 5. Envia a sugestão de volta para o frontend
+    res.json({ sugestao: sugestaoDaIA });
+  } catch (error) {
+    console.error("Erro ao gerar sugestão com IA:", error);
+    res.status(500).json({ message: "Erro ao contatar o assistente de IA." });
+  }
+});
+
+// --- 11. Iniciar Servidor ---
 app.listen(port, () => {
-  console.log(`Servidor rodando com sucesso na porta ${port}`);
+  console.log(`🔥 Servidor rodando na porta ${port}`);
+  console.log(`📂 Pasta de uploads: ${path.join(__dirname, "uploads")}`);
+  console.log(`📂 Pasta de dados: ${path.join(__dirname, "data")}`);
 });

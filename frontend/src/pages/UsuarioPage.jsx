@@ -29,7 +29,7 @@ const UsuarioPage = () => {
       if (data.exists) {
         // === USUÁRIO EXISTE ===
         // Salva os dados do usuário
-        localStorage.setItem("usuarioLogado", JSON.stringify(data.usuario)); // Redireciona para o cardápio
+        localStorage.setItem("usuario", JSON.stringify(data.usuario)); // <-- CORREÇÃO AQUI
         navigate("/cardapio");
       } else {
         // === USUÁRIO NÃO EXISTE ===

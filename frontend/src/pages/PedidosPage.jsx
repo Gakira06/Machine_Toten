@@ -14,10 +14,8 @@ const PedidosPage = () => {
     try {
       setLoading(true);
       const response = await axios.get(API_URL);
-      // Ordena os pedidos do mais velho a o mais novo
-      setPedidos(
-        response.data.sort((a, b) => new Date(a.data) - new Date(b.data))
-      );
+      // A ordenação já está vindo correta do backend (FIFO)
+      setPedidos(response.data); 
       setError(null);
     } catch (err) {
       console.error("Erro ao buscar pedidos:", err);
@@ -27,24 +25,18 @@ const PedidosPage = () => {
     }
   };
 
-  // 2. useEffect para buscar os pedidos quando a página carregar
+  // 2. useEffect (igual)
   useEffect(() => {
     fetchPedidos();
   }, []);
 
-  // 3. Função para finalizar (deletar) um pedido
+  // 3. handleFinalizar (igual)
   const handleFinalizar = async (id) => {
-    // Confirmação para evitar cliques acidentais
     if (!window.confirm("Tem certeza que deseja finalizar este pedido?")) {
       return;
     }
-
     try {
-      // Chama a rota DELETE no backend
       await axios.delete(`${API_URL}/${id}`);
-
-      // Atualiza a lista de pedidos na tela IMEDIATAMENTE,
-      // removendo o que foi finalizado.
       setPedidos((prevPedidos) =>
         prevPedidos.filter((pedido) => pedido.id !== id)
       );
@@ -58,7 +50,6 @@ const PedidosPage = () => {
   if (loading) {
     return <div className="p-8 text-center text-xl">Carregando pedidos...</div>;
   }
-
   if (error) {
     return <div className="p-8 text-center text-xl text-red-500">{error}</div>;
   }
@@ -75,21 +66,27 @@ const PedidosPage = () => {
         </p>
       ) : (
         <div className="flex flex-wrap justify-center gap-6">
-          {/* 4. Mapeia cada pedido para um "Card" */}
           {pedidos.map((pedido) => (
             <div
               key={pedido.id}
               className="bg-white rounded-lg shadow-xl p-6 w-full max-w-sm flex flex-col justify-between"
             >
               <div>
+                
+                {/* --- MUDANÇA AQUI --- */}
+                {/* Agora mostramos o nome do cliente! */}
                 <h2 className="text-2xl font-bold mb-2">
-                  Pedido (Total: R$ {pedido.total.toFixed(2)})
+                  Pedido de: {pedido.nomeCliente || 'Cliente'}
                 </h2>
+                <p className="text-lg text-gray-700 mb-2">
+                  Total: R$ {pedido.total.toFixed(2)}
+                </p>
+                {/* -------------------- */}
+                
                 <p className="text-sm text-gray-500 mb-4">
                   Recebido às: {new Date(pedido.data).toLocaleTimeString()}
                 </p>
 
-                {/* Lista de itens no pedido */}
                 <ul className="list-disc list-inside mb-6 space-y-1">
                   {pedido.items.map((item) => (
                     <li key={item.id} className="text-lg">
@@ -100,7 +97,6 @@ const PedidosPage = () => {
                 </ul>
               </div>
 
-              {/* 5. Botão para finalizar/deletar */}
               <button
                 onClick={() => handleFinalizar(pedido.id)}
                 className="w-full bg-green-500 text-white font-bold py-3 rounded-lg hover:bg-green-600 transition-colors"
